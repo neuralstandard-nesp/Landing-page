@@ -293,6 +293,43 @@
             background: var(--electric-purple);
         }
 
+        /* CTA Card Forms */
+        .cta-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .cta-form input {
+            padding: 1rem 1.2rem;
+            background: rgba(10, 10, 15, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .cta-form input:focus {
+            border-color: var(--neural-blue);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .cta-form input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .creators .cta-form input:focus {
+            border-color: var(--electric-purple);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+
+        .cta-form .btn {
+            width: 100%;
+        }
+
         /* Features Section */
         .features-section {
             padding: 8rem 0;
@@ -532,7 +569,10 @@
                         <li>Cross-Agent Payments</li>
                         <li>Trustless Attestation</li>
                     </ul>
-                    <button class="btn">Register for Beta</button>
+                    <form class="cta-form" onsubmit="handleCTASubmit(event, 'Agent Beta Registration')">
+                        <input type="email" placeholder="your@email.com" required>
+                        <button type="submit" class="btn">Register for Beta</button>
+                    </form>
                 </div>
 
                 <div class="cta-card creators">
@@ -544,7 +584,10 @@
                         <li>$NESP Incentive Layer</li>
                         <li>Developer SDK Access</li>
                     </ul>
-                    <button class="btn purple">Join Creator Whitelist</button>
+                    <form class="cta-form" onsubmit="handleCTASubmit(event, 'Creator Whitelist')">
+                        <input type="email" placeholder="your@email.com" required>
+                        <button type="submit" class="btn purple">Join Creator Whitelist</button>
+                    </form>
                 </div>
             </div>
         </section>
@@ -609,8 +652,9 @@
         <div class="container">
             <div class="footer-links">
                 <a href="#whitepaper">Whitepaper (Coming Soon)</a>
-                <a href="#github">GitHub</a>
-                <a href="#twitter">Twitter</a>
+                <a href="https://github.com/neuralstandard-nesp" target="_blank">GitHub</a>
+                <a href="https://x.com/NeuralS92534" target="_blank">Twitter</a>
+                <a href="mailto:neuralstandard@gmail.com">Contact</a>
                 <a href="#docs">Documentation</a>
             </div>
             <div class="copyright">
@@ -761,53 +805,51 @@
             }
         }
 
-        // Button click handlers for CTA cards
-        document.querySelectorAll('.cta-card .btn').forEach(btn => {
-            btn.addEventListener('click', async function(e) {
-                e.preventDefault();
+        // Form handling for CTA cards
+        async function handleCTASubmit(e, source) {
+            e.preventDefault();
+            const form = e.target;
+            const email = form.querySelector('input').value;
+            const submitBtn = form.querySelector('button');
+            const originalText = submitBtn.textContent;
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                await fetch('https://script.google.com/macros/s/AKfycbyEvbx331QrR6Rmo8otkq3X6aonwR_9bLnhz6IVHOe4XJRtB3jRDpPY5u2jTApeYlXzBg/exec', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        timestamp: new Date().toISOString(),
+                        source: source
+                    })
+                });
                 
-                const isAgentBtn = this.textContent.includes('Register');
-                const isCreatorBtn = this.textContent.includes('Creator');
+                // Show success message
+                submitBtn.textContent = '✓ Submitted!';
+                submitBtn.style.borderColor = '#22d3ee';
+                submitBtn.style.color = '#22d3ee';
                 
-                // Prompt for email
-                const email = prompt(isAgentBtn ? 
-                    'Enter your email to register for Agent Beta:' : 
-                    'Enter your email to join the Creator Whitelist:');
+                setTimeout(() => {
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    submitBtn.style.borderColor = '';
+                    submitBtn.style.color = '';
+                }, 3000);
                 
-                if (email && email.includes('@')) {
-                    this.disabled = true;
-                    this.textContent = 'Submitting...';
-                    
-                    try {
-                        await fetch('https://script.google.com/macros/s/AKfycbyEvbx331QrR6Rmo8otkq3X6aonwR_9bLnhz6IVHOe4XJRtB3jRDpPY5u2jTApeYlXzBg/exec', {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                email: email,
-                                timestamp: new Date().toISOString(),
-                                source: isAgentBtn ? 'Agent Beta Registration' : 'Creator Whitelist'
-                            })
-                        });
-                        
-                        this.textContent = '✓ Submitted!';
-                        setTimeout(() => {
-                            this.disabled = false;
-                            this.textContent = isAgentBtn ? 'Register for Beta' : 'Join Creator Whitelist';
-                        }, 3000);
-                        
-                    } catch (error) {
-                        console.error('Error:', error);
-                        this.disabled = false;
-                        this.textContent = 'Try Again';
-                    }
-                } else if (email) {
-                    alert('Please enter a valid email address.');
-                }
-            });
-        });
+            } catch (error) {
+                console.error('Error:', error);
+                submitBtn.textContent = 'Try Again';
+                submitBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
