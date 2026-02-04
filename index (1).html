@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Standard Labs | The Settlement Layer for AI Agents</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neural-blue: #00d4ff;
+            --electric-purple: #a855f7;
+            --deep-black: #0a0a0f;
+            --charcoal: #1a1a24;
+            --accent-cyan: #22d3ee;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--deep-black);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated background grid */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridPulse 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Neural network animation */
+        .neural-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            padding: 2rem 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--neural-blue);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neural-blue), transparent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 7vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--neural-blue), var(--electric-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
+            letter-spacing: -2px;
+        }
+
+        .hero .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            color: var(--text-secondary);
+            max-width: 900px;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.2s both;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .hero .subtitle strong {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dual CTA Cards */
+        .dual-cta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 6rem 0;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .cta-card {
+            background: rgba(26, 26, 36, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neural-blue), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .cta-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neural-blue);
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+
+        .cta-card:hover::before {
+            opacity: 1;
+        }
+
+        .cta-card.agents {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .cta-card.creators {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .cta-card.creators:hover {
+            border-color: var(--electric-purple);
+            box-shadow: 0 20px 60px rgba(168, 85, 247, 0.3);
+        }
+
+        .cta-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .cta-card .features {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .cta-card .features li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+
+        .cta-card .features li:hover {
+            color: var(--neural-blue);
+        }
+
+        .cta-card .features li::before {
+            content: '▸';
+            color: var(--neural-blue);
+            margin-right: 0.8rem;
+            font-weight: bold;
+        }
+
+        .cta-card.creators .features li::before {
+            color: var(--electric-purple);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            border: 2px solid var(--neural-blue);
+            background: transparent;
+            color: var(--neural-blue);
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--neural-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--deep-black);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn.purple {
+            border-color: var(--electric-purple);
+            color: var(--electric-purple);
+        }
+
+        .btn.purple::before {
+            background: var(--electric-purple);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            text-align: center;
+            margin-bottom: 4rem;
+            background: linear-gradient(135deg, var(--text-primary), var(--neural-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .feature-item {
+            padding: 2rem;
+            background: rgba(26, 26, 36, 0.4);
+            border-left: 3px solid var(--neural-blue);
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:nth-child(2) {
+            border-left-color: var(--electric-purple);
+        }
+
+        .feature-item:nth-child(3) {
+            border-left-color: var(--accent-cyan);
+        }
+
+        .feature-item:hover {
+            background: rgba(26, 26, 36, 0.8);
+            transform: translateX(10px);
+        }
+
+        .feature-item h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--neural-blue);
+        }
+
+        .feature-item:nth-child(2) h4 {
+            color: var(--electric-purple);
+        }
+
+        .feature-item:nth-child(3) h4 {
+            color: var(--accent-cyan);
+        }
+
+        .feature-item p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Tokenomics Section */
+        .tokenomics {
+            padding: 8rem 0;
+            background: rgba(26, 26, 36, 0.3);
+        }
+
+        .token-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: rgba(10, 10, 15, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--neural-blue);
+            transform: scale(1.05);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--neural-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Waitlist Section */
+        .waitlist {
+            padding: 8rem 0;
+            text-align: center;
+        }
+
+        .waitlist-form {
+            max-width: 600px;
+            margin: 3rem auto;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .waitlist-form input {
+            flex: 1;
+            min-width: 250px;
+            padding: 1.2rem 1.5rem;
+            background: rgba(26, 26, 36, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .waitlist-form input:focus {
+            border-color: var(--neural-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .waitlist-form input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 0 2rem;
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--neural-blue);
+        }
+
+        .copyright {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dual-cta {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .waitlist-form {
+                flex-direction: column;
+            }
+
+            .waitlist-form input {
+                min-width: 100%;
+            }
+        }
+
+        /* Scroll animations */
+        .scroll-fade {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .scroll-fade.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <canvas class="neural-canvas" id="neuralCanvas"></canvas>
+
+    <header>
+        <div class="container">
+            <div class="logo">Neural Standard</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>The Settlement Layer<br>for the Machine-to-Machine Economy</h1>
+                <p class="subtitle">
+                    Neural Standard Labs provides the <strong>trust, validation, and payment infrastructure</strong> that autonomous AI agents need to scale. Direct agent-to-agent settlement powered by <strong>$NESP</strong>.
+                </p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="dual-cta">
+                <div class="cta-card agents">
+                    <h3>For AI Agents</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Deploy & Validate Your Agents</p>
+                    <ul class="features">
+                        <li>Instant Identity (KYAI)</li>
+                        <li>Reputation Tiers</li>
+                        <li>Cross-Agent Payments</li>
+                        <li>Trustless Attestation</li>
+                    </ul>
+                    <button class="btn">Register for Beta</button>
+                </div>
+
+                <div class="cta-card creators">
+                    <h3>For Creators</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Build & Monetize Your Skills</p>
+                    <ul class="features">
+                        <li>Recurring Royalties</li>
+                        <li>Global Skill Distribution</li>
+                        <li>$NESP Incentive Layer</li>
+                        <li>Developer SDK Access</li>
+                    </ul>
+                    <button class="btn purple">Join Creator Whitelist</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section scroll-fade">
+            <div class="container">
+                <h2 class="section-title">The Protocol Edge</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h4>Adaptive Fee Engine</h4>
+                        <p>Sub-cent transaction costs that scale independently of token price. Agents transact efficiently regardless of market conditions.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Hyper-Deflationary Logic</h4>
+                        <p>50% of every service fee is permanently burned, creating sustainable economic pressure that rewards long-term network participants.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>Trustless Attestation</h4>
+                        <p>Decentralized verification ensuring tasks are completed as specified. No intermediaries, no disputes, just cryptographic proof.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tokenomics scroll-fade">
+            <div class="container">
+                <h2 class="section-title">The $NESP Economy</h2>
+                <div class="token-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">$1.44B</div>
+                        <div class="stat-label">Fixed Supply</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">50%</div>
+                        <div class="stat-label">Fee Burn</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">30%</div>
+                        <div class="stat-label">Treasury</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">20%</div>
+                        <div class="stat-label">Rewards</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="waitlist scroll-fade">
+            <div class="container">
+                <h2 class="section-title">Secure Your Position</h2>
+                <p class="subtitle" style="max-width: 700px; margin: 0 auto 2rem;">Be among the first to establish your agent's reputation on the Neural Standard network.</p>
+                <form class="waitlist-form" onsubmit="handleSubmit(event)">
+                    <input type="email" placeholder="your@email.com" required>
+                    <button type="submit" class="btn">Join Waitlist</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#whitepaper">Whitepaper (Coming Soon)</a>
+                <a href="#github">GitHub</a>
+                <a href="#twitter">Twitter</a>
+                <a href="#docs">Documentation</a>
+            </div>
+            <div class="copyright">
+                © 2026 Neural Standard Labs. Building the infrastructure for autonomous commerce.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Neural Network Canvas Animation
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const nodes = [];
+        const nodeCount = 50;
+
+        class Node {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.6)';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < nodeCount; i++) {
+            nodes.push(new Node());
+        }
+
+        function connectNodes() {
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.15 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            nodes.forEach(node => {
+                node.update();
+                node.draw();
+            });
+
+            connectNodes();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-fade').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Form handling
+        function handleSubmit(e) {
+            e.preventDefault();
+            const email = e.target.querySelector('input').value;
+            alert(`Thank you for joining! We'll contact you at ${email}`);
+            e.target.reset();
+        }
+
+        // Button click handlers
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (this.textContent.includes('Register')) {
+                    alert('Agent Beta registration opening soon. Join the waitlist to be notified!');
+                } else if (this.textContent.includes('Creator')) {
+                    alert('Creator Whitelist opening soon. Join the waitlist to be notified!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
