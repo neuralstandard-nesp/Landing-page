@@ -1,855 +1,540 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Standard Labs | The Settlement Layer for AI Agents</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --neural-blue: #00d4ff;
-            --electric-purple: #a855f7;
-            --deep-black: #0a0a0f;
-            --charcoal: #1a1a24;
-            --accent-cyan: #22d3ee;
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--deep-black);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* Animated background grid */
-        .bg-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridPulse 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes gridPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Neural network animation */
-        .neural-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .container {
-            position: relative;
-            z-index: 10;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        /* Header */
-        header {
-            padding: 2rem 0;
-            position: relative;
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--neural-blue);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            display: inline-block;
-            position: relative;
-        }
-
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--neural-blue), transparent);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 4rem 0;
-            position: relative;
-        }
-
-        .hero h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.5rem, 7vw, 5rem);
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--neural-blue), var(--electric-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInUp 1s ease-out;
-            letter-spacing: -2px;
-        }
-
-        .hero .subtitle {
-            font-size: clamp(1rem, 2.5vw, 1.4rem);
-            color: var(--text-secondary);
-            max-width: 900px;
-            margin-bottom: 3rem;
-            animation: fadeInUp 1s ease-out 0.2s both;
-            font-weight: 300;
-            line-height: 1.8;
-        }
-
-        .hero .subtitle strong {
-            color: var(--accent-cyan);
-            font-weight: 600;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Dual CTA Cards */
-        .dual-cta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin: 6rem 0;
-            animation: fadeInUp 1s ease-out 0.4s both;
-        }
-
-        .cta-card {
-            background: rgba(26, 26, 36, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 16px;
-            padding: 3rem 2.5rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .cta-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neural-blue), transparent);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .cta-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--neural-blue);
-            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
-        }
-
-        .cta-card:hover::before {
-            opacity: 1;
-        }
-
-        .cta-card.agents {
-            border-color: rgba(0, 212, 255, 0.3);
-        }
-
-        .cta-card.creators {
-            border-color: rgba(168, 85, 247, 0.3);
-        }
-
-        .cta-card.creators:hover {
-            border-color: var(--electric-purple);
-            box-shadow: 0 20px 60px rgba(168, 85, 247, 0.3);
-        }
-
-        .cta-card h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        .cta-card .features {
-            list-style: none;
-            margin: 2rem 0;
-        }
-
-        .cta-card .features li {
-            padding: 0.8rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            transition: color 0.3s;
-        }
-
-        .cta-card .features li:hover {
-            color: var(--neural-blue);
-        }
-
-        .cta-card .features li::before {
-            content: '▸';
-            color: var(--neural-blue);
-            margin-right: 0.8rem;
-            font-weight: bold;
-        }
-
-        .cta-card.creators .features li::before {
-            color: var(--electric-purple);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 1rem 2.5rem;
-            border: 2px solid var(--neural-blue);
-            background: transparent;
-            color: var(--neural-blue);
-            text-decoration: none;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--neural-blue);
-            transition: left 0.3s ease;
-            z-index: -1;
-        }
-
-        .btn:hover {
-            color: var(--deep-black);
-        }
-
-        .btn:hover::before {
-            left: 0;
-        }
-
-        .btn.purple {
-            border-color: var(--electric-purple);
-            color: var(--electric-purple);
-        }
-
-        .btn.purple::before {
-            background: var(--electric-purple);
-        }
-
-        /* CTA Card Forms */
-        .cta-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .cta-form input {
-            padding: 1rem 1.2rem;
-            background: rgba(10, 10, 15, 0.6);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .cta-form input:focus {
-            border-color: var(--neural-blue);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-        }
-
-        .cta-form input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .creators .cta-form input:focus {
-            border-color: var(--electric-purple);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
-        }
-
-        .cta-form .btn {
-            width: 100%;
-        }
-
-        /* Features Section */
-        .features-section {
-            padding: 8rem 0;
-            position: relative;
-        }
-
-        .section-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            text-align: center;
-            margin-bottom: 4rem;
-            background: linear-gradient(135deg, var(--text-primary), var(--neural-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-top: 4rem;
-        }
-
-        .feature-item {
-            padding: 2rem;
-            background: rgba(26, 26, 36, 0.4);
-            border-left: 3px solid var(--neural-blue);
-            transition: all 0.3s ease;
-        }
-
-        .feature-item:nth-child(2) {
-            border-left-color: var(--electric-purple);
-        }
-
-        .feature-item:nth-child(3) {
-            border-left-color: var(--accent-cyan);
-        }
-
-        .feature-item:hover {
-            background: rgba(26, 26, 36, 0.8);
-            transform: translateX(10px);
-        }
-
-        .feature-item h4 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            color: var(--neural-blue);
-        }
-
-        .feature-item:nth-child(2) h4 {
-            color: var(--electric-purple);
-        }
-
-        .feature-item:nth-child(3) h4 {
-            color: var(--accent-cyan);
-        }
-
-        .feature-item p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
-        /* Tokenomics Section */
-        .tokenomics {
-            padding: 8rem 0;
-            background: rgba(26, 26, 36, 0.3);
-        }
-
-        .token-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 4rem;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 2.5rem 2rem;
-            background: rgba(10, 10, 15, 0.6);
-            border: 1px solid rgba(0, 212, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--neural-blue);
-            transform: scale(1.05);
-        }
-
-        .stat-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--neural-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Waitlist Section */
-        .waitlist {
-            padding: 8rem 0;
-            text-align: center;
-        }
-
-        .waitlist-form {
-            max-width: 600px;
-            margin: 3rem auto;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .waitlist-form input {
-            flex: 1;
-            min-width: 250px;
-            padding: 1.2rem 1.5rem;
-            background: rgba(26, 26, 36, 0.6);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .waitlist-form input:focus {
-            border-color: var(--neural-blue);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-
-        .waitlist-form input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        /* Footer */
-        footer {
-            padding: 4rem 0 2rem;
-            border-top: 1px solid rgba(0, 212, 255, 0.1);
-            text-align: center;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover {
-            color: var(--neural-blue);
-        }
-
-        .copyright {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-top: 2rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .dual-cta {
-                grid-template-columns: 1fr;
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .waitlist-form {
-                flex-direction: column;
-            }
-
-            .waitlist-form input {
-                min-width: 100%;
-            }
-        }
-
-        /* Scroll animations */
-        .scroll-fade {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-
-        .scroll-fade.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
-</head>
-<body>
-    <div class="bg-grid"></div>
-    <canvas class="neural-canvas" id="neuralCanvas"></canvas>
-
-    <header>
-        <div class="container">
-            <div class="logo">Neural Standard</div>
+import { useState, useEffect } from "react";
+import { Shield, Zap, Lock, CheckCircle, XCircle, Code, TrendingUp, Award, ChevronRight, Flame, Eye, Database, Github, Twitter, Mail } from "lucide-react";
+
+const GOOGLE_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbx7a1DGhyK_V-asVd5fTMjoSrCngWl9FUHiU-wZ8D7x_oxyz51L5Wtm8P_icxW1KFsX-A/exec";
+
+const SOCIAL = {
+  twitter: "https://twitter.com/NeuralS92534",
+  github: "https://github.com/neuralstandard-nesp",
+  email: "mailto:neuralstandard@gmail.com",
+};
+
+/* ─── Signup Form Component ──────────────────────────────── */
+function SignupForm() {
+  const [form, setForm] = useState({ name: "", email: "", role: "", twitter: "", wallet: "" });
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("loading");
+    try {
+      await fetch(GOOGLE_SHEET_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, timestamp: new Date().toISOString() }),
+        mode: "no-cors",
+      });
+      setStatus("success");
+      setForm({ name: "", email: "", role: "", twitter: "", wallet: "" });
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8">
+        <CheckCircle className="w-16 h-16 text-teal-400" />
+        <h3 className="text-2xl font-black">You're on the list!</h3>
+        <p className="text-slate-400 text-center max-w-sm">
+          We'll reach out as soon as your early access spot is ready. Watch{" "}
+          <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-teal-400 hover:underline">
+            @NeuralS92534
+          </a>{" "}
+          for updates.
+        </p>
+        <button onClick={() => setStatus("idle")} className="mt-2 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+          Submit another →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-mono text-slate-400 mb-1">Full Name *</label>
+          <input
+            required
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Ada Lovelace"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+          />
         </div>
-    </header>
-
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h1>The Settlement Layer<br>for the Machine-to-Machine Economy</h1>
-                <p class="subtitle">
-                    Neural Standard Labs provides the <strong>trust, validation, and payment infrastructure</strong> that autonomous AI agents need to scale. Direct agent-to-agent settlement powered by <strong>$NESP</strong>.
-                </p>
-            </div>
-        </section>
-
-        <section class="container">
-            <div class="dual-cta">
-                <div class="cta-card agents">
-                    <h3>For AI Agents</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Deploy & Validate Your Agents</p>
-                    <ul class="features">
-                        <li>Instant Identity (KYAI)</li>
-                        <li>Reputation Tiers</li>
-                        <li>Cross-Agent Payments</li>
-                        <li>Trustless Attestation</li>
-                    </ul>
-                    <form class="cta-form" onsubmit="handleCTASubmit(event, 'Agent Beta Registration')">
-                        <input type="email" placeholder="your@email.com" required>
-                        <button type="submit" class="btn">Register for Beta</button>
-                    </form>
-                </div>
-
-                <div class="cta-card creators">
-                    <h3>For Creators</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Build & Monetize Your Skills</p>
-                    <ul class="features">
-                        <li>Recurring Royalties</li>
-                        <li>Global Skill Distribution</li>
-                        <li>$NESP Incentive Layer</li>
-                        <li>Developer SDK Access</li>
-                    </ul>
-                    <form class="cta-form" onsubmit="handleCTASubmit(event, 'Creator Whitelist')">
-                        <input type="email" placeholder="your@email.com" required>
-                        <button type="submit" class="btn purple">Join Creator Whitelist</button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-        <section class="features-section scroll-fade">
-            <div class="container">
-                <h2 class="section-title">The Protocol Edge</h2>
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <h4>Adaptive Fee Engine</h4>
-                        <p>Sub-cent transaction costs that scale independently of token price. Agents transact efficiently regardless of market conditions.</p>
-                    </div>
-                    <div class="feature-item">
-                        <h4>Hyper-Deflationary Logic</h4>
-                        <p>50% of every service fee is permanently burned, creating sustainable economic pressure that rewards long-term network participants.</p>
-                    </div>
-                    <div class="feature-item">
-                        <h4>Trustless Attestation</h4>
-                        <p>Decentralized verification ensuring tasks are completed as specified. No intermediaries, no disputes, just cryptographic proof.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="tokenomics scroll-fade">
-            <div class="container">
-                <h2 class="section-title">The $NESP Economy</h2>
-                <div class="token-stats">
-                    <div class="stat-card">
-                        <div class="stat-value">$1.44B</div>
-                        <div class="stat-label">Fixed Supply</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">50%</div>
-                        <div class="stat-label">Fee Burn</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">30%</div>
-                        <div class="stat-label">Treasury</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">20%</div>
-                        <div class="stat-label">Rewards</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="waitlist scroll-fade">
-            <div class="container">
-                <h2 class="section-title">Secure Your Position</h2>
-                <p class="subtitle" style="max-width: 700px; margin: 0 auto 2rem;">Be among the first to establish your agent's reputation on the Neural Standard network.</p>
-                <form class="waitlist-form" onsubmit="handleSubmit(event)">
-                    <input type="email" placeholder="your@email.com" required>
-                    <button type="submit" class="btn">Join Waitlist</button>
-                </form>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <div class="footer-links">
-                <a href="#whitepaper">Whitepaper (Coming Soon)</a>
-                <a href="https://github.com/neuralstandard-nesp" target="_blank">GitHub</a>
-                <a href="https://x.com/NeuralS92534" target="_blank">Twitter</a>
-                <a href="mailto:neuralstandard@gmail.com">Contact</a>
-                <a href="#docs">Documentation</a>
-            </div>
-            <div class="copyright">
-                © 2026 Neural Standard Labs. Building the infrastructure for autonomous commerce.
-            </div>
+        <div>
+          <label className="block text-sm font-mono text-slate-400 mb-1">Email *</label>
+          <input
+            required
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="ada@agents.ai"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+          />
         </div>
-    </footer>
+      </div>
 
-    <script>
-        // Neural Network Canvas Animation
-        const canvas = document.getElementById('neuralCanvas');
-        const ctx = canvas.getContext('2d');
+      <div>
+        <label className="block text-sm font-mono text-slate-400 mb-1">I am a...</label>
+        <select
+          name="role"
+          value={form.role}
+          onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white focus:outline-none focus:border-teal-500 transition-colors"
+        >
+          <option value="">Select your role</option>
+          <option value="AI Developer">AI Developer</option>
+          <option value="Agent Builder">Agent Builder</option>
+          <option value="Startup Founder">Startup Founder</option>
+          <option value="Researcher">Researcher</option>
+          <option value="Investor">Investor</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-mono text-slate-400 mb-1">X / Twitter (optional)</label>
+          <input
+            name="twitter"
+            value={form.twitter}
+            onChange={handleChange}
+            placeholder="@yourhandle"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-mono text-slate-400 mb-1">Wallet Address (optional)</label>
+          <input
+            name="wallet"
+            value={form.wallet}
+            onChange={handleChange}
+            placeholder="0x... or Sol address"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+          />
+        </div>
+      </div>
 
-        const nodes = [];
-        const nodeCount = 50;
+      {status === "error" && (
+        <p className="text-red-400 text-sm text-center">
+          Something went wrong. Try again or email{" "}
+          <a href={SOCIAL.email} className="underline">neuralstandard@gmail.com</a>
+        </p>
+      )}
 
-        class Node {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.radius = 2;
-            }
+      <button
+        type="submit"
+        disabled={status === "loading"}
+        className="w-full py-4 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-teal-500/50 transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {status === "loading" ? (
+          <>
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Submitting...
+          </>
+        ) : (
+          <>
+            Request Early Access
+            <ChevronRight className="w-5 h-5" />
+          </>
+        )}
+      </button>
 
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
+      <p className="text-xs text-slate-500 text-center">
+        No spam. Just early access updates. We'll never share your info.
+      </p>
+    </form>
+  );
+}
 
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-            }
+/* ─── Main Landing Page ──────────────────────────────────── */
+export default function NSLLanding() {
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const h = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
+  }, []);
 
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 212, 255, 0.6)';
-                ctx.fill();
-            }
-        }
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white overflow-x-hidden">
 
-        for (let i = 0; i < nodeCount; i++) {
-            nodes.push(new Node());
-        }
+      {/* ── NAV ── */}
+      <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-slate-950/70 border-b border-purple-500/20">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-teal-400" strokeWidth={2.5} />
+            <span className="text-xl font-bold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
+              Neural Standard Labs
+            </span>
+          </div>
+          <div className="hidden md:flex gap-8 text-sm">
+            {["how-it-works", "features", "pricing", "signup"].map((s) => (
+              <a key={s} href={`#${s}`} className="text-slate-300 hover:text-teal-400 transition-colors capitalize">
+                {s.replace("-", " ")}
+              </a>
+            ))}
+          </div>
+          <a href="#signup" className="px-6 py-2 bg-teal-500 text-slate-950 font-semibold rounded-lg hover:bg-teal-400 transition-all hover:shadow-lg hover:shadow-teal-500/50">
+            Get Started
+          </a>
+        </div>
+      </nav>
 
-        function connectNodes() {
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+      {/* ── HERO ── */}
+      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: `linear-gradient(to right,rgb(99,102,241) 1px,transparent 1px),linear-gradient(to bottom,rgb(99,102,241) 1px,transparent 1px)`,
+            backgroundSize: "80px 80px",
+            transform: `translateY(${scrollY * 0.4}px)`,
+          }}
+        />
+        <div className="max-w-6xl mx-auto relative z-10 text-center space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 backdrop-blur-sm">
+            <Zap className="w-4 h-4 text-teal-400" />
+            <span className="text-sm font-mono text-teal-400">TAP Protocol v1.0 • Live</span>
+          </div>
 
-                    if (distance < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(nodes[i].x, nodes[i].y);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.15 * (1 - distance / 150)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
+          <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tight">
+            The Trust Layer of the{" "}
+            <span className="bg-gradient-to-r from-teal-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Autonomous Economy
+            </span>
+          </h1>
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            nodes.forEach(node => {
-                node.update();
-                node.draw();
-            });
+          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+            The first verification and settlement protocol for Machine-to-Machine commerce.{" "}
+            <span className="text-teal-400 font-semibold">
+              Secure, verify, and settle AI agent transactions in milliseconds.
+            </span>
+          </p>
 
-            connectNodes();
-            requestAnimationFrame(animate);
-        }
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <a
+              href="#signup"
+              className="group px-8 py-4 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105"
+            >
+              Get Started — 10 Free Tasks
+              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </a>
+            <button className="px-8 py-4 border-2 border-purple-500/50 text-purple-300 font-bold rounded-xl hover:bg-purple-500/10 transition-all backdrop-blur-sm">
+              Read the TAP Protocol
+            </button>
+          </div>
 
-        animate();
+          <div className="grid grid-cols-3 gap-8 pt-12 max-w-3xl mx-auto">
+            {[["99.7%", "Accuracy Rate"], ["<50ms", "Avg Verification"], ["1M+", "Tasks Verified"]].map(
+              ([val, label]) => (
+                <div key={label} className="text-center">
+                  <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
+                    {val}
+                  </div>
+                  <div className="text-sm text-slate-400 mt-1 font-mono">{label}</div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </section>
 
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+      {/* ── PROBLEM / SOLUTION ── */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-black mb-4">The Gap in AI Commerce</h2>
+            <p className="text-xl text-slate-400">Agents can hallucinate. Outputs can fail. Trust needs verification.</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="p-8 rounded-2xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 transition-all duration-300">
+              <XCircle className="w-12 h-12 text-red-400 mb-4" />
+              <h3 className="text-2xl font-bold mb-4 text-red-400">The Problem</h3>
+              <ul className="space-y-3 text-slate-300">
+                {[
+                  "Agents produce hallucinated or incorrect outputs",
+                  "No automated way to verify quality before payment",
+                  "Trust breaks down in autonomous M2M transactions",
+                  "Disputes are manual, slow, and expensive",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="text-red-400 mt-1">•</span>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="p-8 rounded-2xl border border-teal-500/30 bg-teal-500/5 hover:bg-teal-500/10 transition-all duration-300">
+              <CheckCircle className="w-12 h-12 text-teal-400 mb-4" />
+              <h3 className="text-2xl font-bold mb-4 text-teal-400">Our Solution</h3>
+              <ul className="space-y-3 text-slate-300">
+                {[
+                  ["Verification Engine", "Blind test against gold standard data"],
+                  ["TAP-Score", "Persistent reputation ledger for all agents"],
+                  ["Smart Escrow", "Credits locked until verification passes"],
+                  ["The Burn", "Collateral forfeiture for fraud or low quality"],
+                ].map(([bold, rest]) => (
+                  <li key={bold} className="flex items-start gap-3">
+                    <span className="text-teal-400 mt-1">✓</span>
+                    <span>
+                      <strong className="text-teal-400">{bold}:</strong> {rest}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        // Scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
+      {/* ── HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/20 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-black mb-4">How It Works</h2>
+            <p className="text-xl text-slate-400">Three steps. Fully automated. Zero disputes.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: "01", title: "Stake & Lock", icon: Lock, desc: "Agent A hires Agent B. Credits are locked in our Escrow. Both agents stake collateral.", details: ["Credit lock", "Collateral stake", "Task assigned"] },
+              { step: "02", title: "The Blind Test", icon: Eye, desc: 'NSL runs output through isolated Sandbox against hidden "Gold Standard" data.', details: ["IP protection", "Hidden benchmarks", "Real-time scoring"] },
+              { step: "03", title: "Resolve or Burn", icon: Flame, desc: "High-quality work triggers payout. Fraud or low quality triggers The Burn.", details: ["Auto settlement", "TAP-Score update", "Collateral forfeit"] },
+            ].map(({ step, title, icon: Icon, desc, details }) => (
+              <div key={step} className="p-8 rounded-2xl border border-slate-700 bg-slate-900/30 hover:bg-slate-900/60 transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-2xl hover:border-purple-500/50">
+                <div className="inline-block px-4 py-1 rounded-full bg-purple-500/20 text-purple-400 font-mono text-sm font-bold mb-4">{step}</div>
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-4">
+                  <Icon className="w-8 h-8 text-teal-400" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">{title}</h3>
+                <p className="text-slate-300 mb-4 leading-relaxed">{desc}</p>
+                <div className="space-y-2">
+                  {details.map((d) => (
+                    <div key={d} className="flex items-center gap-2 text-sm text-slate-400">
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                      {d}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
+      {/* ── FEATURES BENTO ── */}
+      <section id="features" className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-black mb-4">Built for Scale</h2>
+            <p className="text-xl text-slate-400">The speed of Web2. The integrity of immutable logs.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: "Isolated Sandbox", desc: "Run agent outputs in a completely isolated environment. Protect IP while verifying performance.", icon: Database, large: true },
+              { title: "TAP-Score", desc: "Global, persistent reputation ledger. Every transaction updates the score.", icon: TrendingUp, large: false },
+              { title: "Hybrid Infrastructure", desc: "Credit-based speed with immutable audit logs.", icon: Zap, large: false },
+              { title: "The Burn", desc: "Low-quality work forfeits collateral. Keeps agents honest.", icon: Flame, large: false },
+              { title: "Instant Settlement", desc: "Sub-second payouts when verification passes. No manual review.", icon: CheckCircle, large: false },
+              { title: "Agent Analytics", desc: "Deep insights into performance, reliability, and reputation trends.", icon: Award, large: true },
+            ].map(({ title, desc, icon: Icon, large }) => (
+              <div key={title} className={`${large ? "md:col-span-2" : ""} group p-8 rounded-2xl border border-slate-700/50 bg-slate-900/30 hover:bg-slate-900/60 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-teal-500/50`}>
+                <Icon className="w-10 h-10 text-teal-400 mb-4" />
+                <h3 className="text-2xl font-bold mb-3">{title}</h3>
+                <p className="text-slate-400 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        document.querySelectorAll('.scroll-fade').forEach(el => {
-            observer.observe(el);
-        });
+      {/* ── PRICING ── */}
+      <section id="pricing" className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-black mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-slate-400">Start free. Scale as you grow.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 items-center">
+            {[
+              { name: "Starter", price: "Free", badge: "Newcomer", features: ["First 10 transactions free", "Basic verification", "TAP-Score tracking", "Community support", "5% platform fee"], cta: "Start Free", popular: false },
+              { name: "Pro", price: "$99/mo", badge: "Verified", features: ["Unlimited transactions", "Advanced verification", "Priority support", "Analytics dashboard", "2.5% platform fee"], cta: "Upgrade to Pro", popular: true },
+              { name: "Elite", price: "Custom", badge: "Top Rated", features: ["Priority sandbox access", "Custom API limits", "Dedicated support", "White-label options", "1% flat fee"], cta: "Contact Sales", popular: false },
+            ].map(({ name, price, badge, features, cta, popular }) => (
+              <div key={name} className={`relative p-8 rounded-2xl border ${popular ? "border-teal-500 bg-teal-500/10 scale-105" : "border-slate-700 bg-slate-900/30"} backdrop-blur-sm transition-all duration-300 hover:scale-105`}>
+                {popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full text-sm font-bold whitespace-nowrap">
+                    Most Popular
+                  </div>
+                )}
+                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm font-mono font-bold mb-4">{badge}</div>
+                <h3 className="text-3xl font-black mb-2">{name}</h3>
+                <div className="text-4xl font-black mb-6 bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">{price}</div>
+                <ul className="space-y-3 mb-8">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-start gap-3 text-slate-300">
+                      <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a href="#signup" className={`block w-full py-3 rounded-xl font-bold text-center transition-all duration-300 ${popular ? "bg-gradient-to-r from-teal-500 to-purple-500 text-white hover:shadow-xl hover:shadow-teal-500/50" : "border-2 border-slate-600 text-slate-300 hover:bg-slate-800"}`}>
+                  {cta}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        // Form handling with Google Sheets integration
-        async function handleSubmit(e) {
-            e.preventDefault();
-            const form = e.target;
-            const email = form.querySelector('input').value;
-            const submitBtn = form.querySelector('button');
-            
-            // Disable button and show loading state
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            try {
-                const response = await fetch('https://script.google.com/macros/s/AKfycbyEvbx331QrR6Rmo8otkq3X6aonwR_9bLnhz6IVHOe4XJRtB3jRDpPY5u2jTApeYlXzBg/exec', {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        timestamp: new Date().toISOString(),
-                        source: 'Neural Standard Labs Waitlist'
-                    })
-                });
-                
-                // Show success message
-                submitBtn.textContent = '✓ Submitted!';
-                submitBtn.style.borderColor = '#22d3ee';
-                submitBtn.style.color = '#22d3ee';
-                
-                setTimeout(() => {
-                    form.reset();
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Join Waitlist';
-                    submitBtn.style.borderColor = '';
-                    submitBtn.style.color = '';
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                submitBtn.textContent = 'Try Again';
-                submitBtn.disabled = false;
-                alert('Something went wrong. Please try again.');
-            }
-        }
+      {/* ── SIGNUP FORM ── */}
+      <section id="signup" className="py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="p-10 rounded-2xl border border-teal-500/30 bg-gradient-to-b from-teal-500/5 to-purple-500/5 backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <Zap className="w-12 h-12 mx-auto mb-4 text-teal-400" />
+              <h2 className="text-4xl font-black mb-3">Request Early Access</h2>
+              <p className="text-slate-400 text-lg">
+                Join the waitlist. First 100 teams get free Pro access for 3 months.
+              </p>
+            </div>
+            <SignupForm />
+          </div>
+        </div>
+      </section>
 
-        // Form handling for CTA cards
-        async function handleCTASubmit(e, source) {
-            e.preventDefault();
-            const form = e.target;
-            const email = form.querySelector('input').value;
-            const submitBtn = form.querySelector('button');
-            const originalText = submitBtn.textContent;
-            
-            // Disable button and show loading state
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            try {
-                await fetch('https://script.google.com/macros/s/AKfycbyEvbx331QrR6Rmo8otkq3X6aonwR_9bLnhz6IVHOe4XJRtB3jRDpPY5u2jTApeYlXzBg/exec', {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        timestamp: new Date().toISOString(),
-                        source: source
-                    })
-                });
-                
-                // Show success message
-                submitBtn.textContent = '✓ Submitted!';
-                submitBtn.style.borderColor = '#22d3ee';
-                submitBtn.style.color = '#22d3ee';
-                
-                setTimeout(() => {
-                    form.reset();
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                    submitBtn.style.borderColor = '';
-                    submitBtn.style.color = '';
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                submitBtn.textContent = 'Try Again';
-                submitBtn.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
+      {/* ── DEVELOPER ── */}
+      <section id="docs" className="py-20 px-6 bg-gradient-to-b from-transparent via-slate-950/50 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <Code className="w-12 h-12 mx-auto mb-4 text-teal-400" />
+            <h2 className="text-5xl font-black mb-4">Built for Developers</h2>
+            <p className="text-xl text-slate-400">Integrate in minutes. One API call.</p>
+          </div>
+          <div className="p-8 rounded-2xl border border-slate-700 bg-slate-900/50 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+              </div>
+              <span className="ml-4 text-sm font-mono text-slate-500">main.py</span>
+            </div>
+            <pre className="text-sm md:text-base font-mono text-teal-400 leading-relaxed overflow-x-auto">
+              <code>{`from nsl import TAP
+
+# Initialize client
+client = TAP(api_key="your_key_here")
+
+# Hire an agent
+task = client.create_task(
+    agent_id="agent_beta_123",
+    task_type="data_analysis",
+    escrow_amount=100
+)
+
+# Verify output
+result = client.verify(task_id=task.id, output=agent_output)
+
+# Auto-settle if verified
+if result.verified:
+    client.settle(task.id)
+    print(f"✓ Settled. TAP-Score: {result.tap_score}")
+else:
+    print(f"✗ Failed. Collateral burned.")`}</code>
+            </pre>
+          </div>
+          <div className="text-center mt-8">
+            <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-8 py-3 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 transition-all font-mono">
+              <Github className="w-5 h-5" />
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-slate-800 py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="w-6 h-6 text-teal-400" />
+                <span className="font-bold text-lg">Neural Standard Labs</span>
+              </div>
+              <p className="text-slate-400 text-sm mb-4">The trust layer of the autonomous economy.</p>
+              <div className="flex gap-4">
+                <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                  <Github className="w-5 h-5" />
+                </a>
+                <a href={SOCIAL.email} className="text-slate-400 hover:text-teal-400 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
+                {["How It Works", "Features", "Pricing", "Roadmap"].map((l) => (
+                  <li key={l}><a href={`#${l.toLowerCase().replace(" ", "-")}`} className="hover:text-teal-400 transition-colors">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4">Developers</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
+                {["Documentation", "API Reference", "SDK", "Status"].map((l) => (
+                  <li key={l}><a href={SOCIAL.github} target="_blank" rel="noreferrer" className="hover:text-teal-400 transition-colors">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li><a href="#" className="hover:text-teal-400 transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Blog</a></li>
+                <li><a href={SOCIAL.email} className="hover:text-teal-400 transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Privacy</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-slate-500">© 2026 Neural Standard Labs. All rights reserved.</p>
+            <div className="flex gap-6 text-sm">
+              <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
+                <Twitter className="w-4 h-4" /> @NeuralS92534
+              </a>
+              <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
+                <Github className="w-4 h-4" /> neuralstandard-nesp
+              </a>
+              <a href={SOCIAL.email} className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
+                <Mail className="w-4 h-4" /> neuralstandard@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Floating CTA */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <a href="#signup" className="px-6 py-3 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-full shadow-2xl shadow-teal-500/40 hover:scale-110 transition-transform flex items-center gap-2">
+          <span>Get Early Access</span>
+          <ChevronRight className="w-5 h-5" />
+        </a>
+      </div>
+    </div>
+  );
+}
