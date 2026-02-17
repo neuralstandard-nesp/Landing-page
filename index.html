@@ -1,540 +1,826 @@
-import { useState, useEffect } from "react";
-import { Shield, Zap, Lock, CheckCircle, XCircle, Code, TrendingUp, Award, ChevronRight, Flame, Eye, Database, Github, Twitter, Mail } from "lucide-react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Standard Labs — The Trust Layer of the Autonomous Economy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-const GOOGLE_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbx7a1DGhyK_V-asVd5fTMjoSrCngWl9FUHiU-wZ8D7x_oxyz51L5Wtm8P_icxW1KFsX-A/exec";
-
-const SOCIAL = {
-  twitter: "https://twitter.com/NeuralS92534",
-  github: "https://github.com/neuralstandard-nesp",
-  email: "mailto:neuralstandard@gmail.com",
-};
-
-/* ─── Signup Form Component ──────────────────────────────── */
-function SignupForm() {
-  const [form, setForm] = useState({ name: "", email: "", role: "", twitter: "", wallet: "" });
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
-
-  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus("loading");
-    try {
-      await fetch(GOOGLE_SHEET_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, timestamp: new Date().toISOString() }),
-        mode: "no-cors",
-      });
-      setStatus("success");
-      setForm({ name: "", email: "", role: "", twitter: "", wallet: "" });
-    } catch {
-      setStatus("error");
+    :root {
+      --bg:       #07071a;
+      --bg2:      #0d0d2b;
+      --teal:     #00e5c0;
+      --teal-dim: #00b89a;
+      --purple:   #a855f7;
+      --pink:     #ec4899;
+      --fg:       #f1f5f9;
+      --muted:    #94a3b8;
+      --border:   rgba(168,85,247,0.2);
+      --card:     rgba(255,255,255,0.03);
+      --glass:    rgba(255,255,255,0.05);
     }
-  };
 
-  if (status === "success") {
-    return (
-      <div className="flex flex-col items-center gap-4 py-8">
-        <CheckCircle className="w-16 h-16 text-teal-400" />
-        <h3 className="text-2xl font-black">You're on the list!</h3>
-        <p className="text-slate-400 text-center max-w-sm">
-          We'll reach out as soon as your early access spot is ready. Watch{" "}
-          <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-teal-400 hover:underline">
-            @NeuralS92534
-          </a>{" "}
-          for updates.
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NOISE ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events: none; opacity: .5;
+    }
+
+    /* ── GRID BG ── */
+    .grid-bg {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(99,102,241,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,.08) 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(7,7,26,.8);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 5vw;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+    .nav-logo span {
+      font-size: 1.2rem; font-weight: 700;
+      background: linear-gradient(90deg, var(--teal), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta {
+      padding: .6rem 1.5rem;
+      background: var(--teal); color: #07071a;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
+      border: none; border-radius: .75rem; cursor: pointer;
+      transition: all .3s; text-decoration: none;
+    }
+    .nav-cta:hover { background: #00ffce; box-shadow: 0 0 24px rgba(0,229,192,.4); }
+
+    /* ── SECTIONS ── */
+    section { position: relative; padding: 6rem 5vw; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .section-tag {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .4rem 1rem; border-radius: 2rem;
+      border: 1px solid rgba(168,85,247,.3);
+      background: rgba(168,85,247,.1);
+      font-family: 'JetBrains Mono', monospace; font-size: .8rem;
+      color: var(--teal); margin-bottom: 1.5rem;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+
+    /* ── HERO ── */
+    #hero { padding-top: 10rem; text-align: center; }
+    #hero h1 {
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800; line-height: 1;
+      letter-spacing: -.03em; margin-bottom: 1.5rem;
+    }
+    .grad { background: linear-gradient(135deg, var(--teal), var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    #hero p { font-size: clamp(1.1rem, 2.5vw, 1.4rem); color: var(--muted); max-width: 700px; margin: 0 auto 2.5rem; }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: 1rem 2.5rem; border-radius: .875rem;
+      background: linear-gradient(135deg, var(--teal), var(--purple));
+      color: #fff; font-family: 'Syne', sans-serif; font-weight: 700;
+      text-decoration: none; border: none; cursor: pointer; font-size: 1rem;
+      transition: all .3s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,229,192,.35); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: 1rem 2.5rem; border-radius: .875rem;
+      border: 2px solid rgba(168,85,247,.4);
+      color: var(--purple); font-family: 'Syne', sans-serif; font-weight: 700;
+      background: transparent; cursor: pointer; font-size: 1rem;
+      text-decoration: none; transition: all .3s;
+    }
+    .btn-ghost:hover { background: rgba(168,85,247,.1); transform: translateY(-2px); }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 600px; margin: 0 auto; }
+    .stat-val { font-size: 2.5rem; font-weight: 800; background: linear-gradient(90deg, var(--teal), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--muted); }
+
+    /* ── SECTION HEADERS ── */
+    .s-title { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: .75rem; }
+    .s-sub { font-size: 1.1rem; color: var(--muted); margin-bottom: 3.5rem; }
+
+    /* ── PROBLEM / SOLUTION ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .card {
+      padding: 2.5rem; border-radius: 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--card); backdrop-filter: blur(12px);
+      transition: all .3s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card-red { border-color: rgba(239,68,68,.25); background: rgba(239,68,68,.04); }
+    .card-red:hover { border-color: rgba(239,68,68,.5); }
+    .card-teal { border-color: rgba(0,229,192,.25); background: rgba(0,229,192,.04); }
+    .card-teal:hover { border-color: rgba(0,229,192,.5); }
+    .card h3 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0; }
+    .card-red h3 { color: #f87171; }
+    .card-teal h3 { color: var(--teal); }
+    .list-item { display: flex; gap: .75rem; margin-bottom: .75rem; color: var(--muted); font-size: .95rem; }
+    .bullet-red { color: #f87171; margin-top: .2rem; }
+    .bullet-teal { color: var(--teal); margin-top: .2rem; }
+    .icon-circle {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .icon-red { background: rgba(239,68,68,.15); }
+    .icon-teal { background: rgba(0,229,192,.15); }
+
+    /* ── HOW IT WORKS ── */
+    #how-it-works { background: linear-gradient(180deg, transparent, rgba(168,85,247,.05), transparent); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .step-card {
+      padding: 2.5rem; border-radius: 1.5rem;
+      border: 1px solid var(--border); background: var(--card);
+      backdrop-filter: blur(12px); transition: all .3s; position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--purple));
+      transform: scaleX(0); transform-origin: left; transition: transform .4s;
+    }
+    .step-card:hover::before { transform: scaleX(1); }
+    .step-card:hover { transform: translateY(-6px); border-color: rgba(168,85,247,.4); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+    .step-num {
+      display: inline-block; padding: .25rem .85rem; border-radius: 2rem;
+      background: rgba(168,85,247,.2); color: var(--purple);
+      font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+    .step-icon {
+      width: 60px; height: 60px; border-radius: 1rem;
+      background: linear-gradient(135deg, rgba(0,229,192,.15), rgba(168,85,247,.1));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin-bottom: 1.25rem;
+    }
+    .step-card h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: .75rem; }
+    .step-card p { color: var(--muted); font-size: .95rem; margin-bottom: 1rem; }
+    .step-details { display: flex; flex-direction: column; gap: .4rem; }
+    .step-detail { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: #64748b; }
+    .dot-sm { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
+
+    /* ── FEATURES BENTO ── */
+    .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .bento-card {
+      padding: 2rem; border-radius: 1.25rem;
+      border: 1px solid var(--border); background: var(--card);
+      backdrop-filter: blur(12px); transition: all .3s;
+    }
+    .bento-card:hover { border-color: rgba(0,229,192,.4); transform: scale(1.02); background: rgba(0,229,192,.04); }
+    .bento-wide { grid-column: span 2; }
+    .bento-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .bento-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; }
+    .bento-card p { color: var(--muted); font-size: .9rem; line-height: 1.7; }
+
+    /* ── PRICING ── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; align-items: center; }
+    .price-card {
+      padding: 2.5rem; border-radius: 1.5rem;
+      border: 1px solid var(--border); background: var(--card);
+      transition: all .3s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.featured {
+      border-color: var(--teal); background: rgba(0,229,192,.06);
+      transform: scale(1.04); box-shadow: 0 0 60px rgba(0,229,192,.15);
+    }
+    .price-badge {
+      display: inline-block; padding: .25rem .85rem; border-radius: 2rem;
+      background: rgba(168,85,247,.2); color: var(--purple);
+      font-family: 'JetBrains Mono', monospace; font-size: .75rem; font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .popular-tag {
+      display: block; text-align: center; margin-bottom: 1rem;
+      padding: .35rem; border-radius: 2rem;
+      background: linear-gradient(90deg, var(--teal), var(--purple));
+      font-size: .8rem; font-weight: 700;
+    }
+    .price-name { font-size: 1.75rem; font-weight: 800; margin-bottom: .5rem; }
+    .price-val { font-size: 2.5rem; font-weight: 800; background: linear-gradient(90deg, var(--teal), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
+    .price-features { list-style: none; margin-bottom: 2rem; }
+    .price-features li { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: .65rem; color: var(--muted); font-size: .9rem; }
+    .check { color: var(--teal); flex-shrink: 0; }
+    .price-btn {
+      display: block; width: 100%; padding: .9rem;
+      border-radius: .875rem; font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: .95rem; cursor: pointer;
+      text-align: center; text-decoration: none; transition: all .3s; border: none;
+    }
+    .price-btn-featured { background: linear-gradient(135deg, var(--teal), var(--purple)); color: #fff; }
+    .price-btn-featured:hover { box-shadow: 0 8px 30px rgba(0,229,192,.4); transform: translateY(-2px); }
+    .price-btn-ghost { background: transparent; border: 2px solid #334155; color: var(--muted); }
+    .price-btn-ghost:hover { background: #1e293b; color: var(--fg); }
+
+    /* ── SIGNUP ── */
+    #signup { background: linear-gradient(135deg, rgba(0,229,192,.03), rgba(168,85,247,.05)); }
+    .signup-box {
+      max-width: 640px; margin: 0 auto;
+      padding: 3rem; border-radius: 2rem;
+      border: 1px solid rgba(0,229,192,.3);
+      background: rgba(0,229,192,.04); backdrop-filter: blur(12px);
+    }
+    .signup-box h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: .75rem; }
+    .signup-box .s-sub { margin-bottom: 2rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--muted); margin-bottom: .4rem; }
+    .field input, .field select {
+      width: 100%; padding: .85rem 1rem;
+      background: rgba(255,255,255,.05); border: 1px solid #1e293b;
+      border-radius: .75rem; color: var(--fg);
+      font-family: 'Syne', sans-serif; font-size: .95rem;
+      transition: border-color .2s; outline: none;
+      appearance: none;
+    }
+    .field input::placeholder { color: #475569; }
+    .field input:focus, .field select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,229,192,.1); }
+    .field select option { background: #0d1117; }
+    .form-note { font-size: .8rem; color: #475569; text-align: center; margin-top: .75rem; }
+    .form-error { color: #f87171; font-size: .85rem; text-align: center; margin-bottom: .75rem; }
+    .submit-btn {
+      width: 100%; padding: 1rem;
+      background: linear-gradient(135deg, var(--teal), var(--purple));
+      color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      border: none; border-radius: .875rem; cursor: pointer;
+      transition: all .3s; display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,229,192,.35); }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .success-box { text-align: center; padding: 2rem 0; }
+    .success-box .big-check { font-size: 4rem; margin-bottom: 1rem; }
+    .success-box h3 { font-size: 2rem; font-weight: 800; margin-bottom: .75rem; color: var(--teal); }
+    .success-box p { color: var(--muted); margin-bottom: 1.5rem; }
+    .success-box a { color: var(--teal); text-decoration: none; }
+    .success-box a:hover { text-decoration: underline; }
+    .reset-link { background: none; border: none; color: #475569; font-size: .85rem; cursor: pointer; font-family: 'Syne', sans-serif; }
+    .reset-link:hover { color: var(--muted); }
+
+    /* ── DEVELOPER ── */
+    .code-window {
+      border-radius: 1.25rem; overflow: hidden;
+      border: 1px solid #1e293b; background: #0d1117;
+    }
+    .code-topbar {
+      padding: .75rem 1.25rem; background: #161b22;
+      border-bottom: 1px solid #21262d;
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .traffic { width: 12px; height: 12px; border-radius: 50%; }
+    .code-file { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: #6e7681; margin-left: .5rem; }
+    .code-body { padding: 1.75rem; overflow-x: auto; }
+    pre { font-family: 'JetBrains Mono', monospace; font-size: .9rem; line-height: 1.8; color: var(--teal); }
+    .code-comment { color: #6e7681; }
+    .code-keyword { color: var(--purple); }
+    .code-string { color: #a5d6ff; }
+    .gh-btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .85rem 2rem; border-radius: .875rem;
+      background: #21262d; border: 1px solid #30363d;
+      color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: .9rem;
+      text-decoration: none; transition: all .3s; margin-top: 2rem;
+    }
+    .gh-btn:hover { background: #30363d; color: var(--fg); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 4rem 5vw;
+      background: rgba(0,0,0,.3);
+    }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-logo { display: flex; align-items: center; gap: .5rem; text-decoration: none; margin-bottom: 1rem; }
+    .footer-logo span { font-weight: 700; font-size: 1.1rem; background: linear-gradient(90deg, var(--teal), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .footer-tagline { color: var(--muted); font-size: .9rem; margin-bottom: 1.25rem; }
+    .social-links { display: flex; gap: .75rem; }
+    .social-link {
+      width: 36px; height: 36px; border-radius: .5rem;
+      border: 1px solid #1e293b; background: var(--card);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); text-decoration: none; font-size: 1rem;
+      transition: all .2s;
+    }
+    .social-link:hover { border-color: var(--teal); color: var(--teal); background: rgba(0,229,192,.08); }
+    .footer-col h4 { font-weight: 700; margin-bottom: 1rem; font-size: .95rem; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: .6rem; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
+    .footer-links a:hover { color: var(--teal); }
+    .footer-bottom { padding-top: 2rem; border-top: 1px solid #0f172a; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-bottom p { color: #475569; font-size: .85rem; }
+    .footer-socials { display: flex; gap: 1.5rem; }
+    .footer-socials a { color: #475569; text-decoration: none; font-size: .85rem; display: flex; align-items: center; gap: .35rem; transition: color .2s; }
+    .footer-socials a:hover { color: var(--teal); }
+
+    /* ── FLOATING CTA ── */
+    .float-cta {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 99;
+      display: flex; align-items: center; gap: .5rem;
+      padding: .85rem 1.5rem; border-radius: 2rem;
+      background: linear-gradient(135deg, var(--teal), var(--purple));
+      color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
+      text-decoration: none; box-shadow: 0 8px 32px rgba(0,229,192,.35);
+      transition: all .3s;
+    }
+    .float-cta:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 16px 48px rgba(0,229,192,.45); }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      animation: spin .7s linear infinite;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp .8s ease-out both; }
+    .delay-1 { animation-delay: .1s; }
+    .delay-2 { animation-delay: .2s; }
+    .delay-3 { animation-delay: .3s; }
+    .delay-4 { animation-delay: .4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .two-col, .steps, .bento, .pricing-grid, .footer-grid { grid-template-columns: 1fr; }
+      .bento-wide { grid-column: span 1; }
+      .form-row { grid-template-columns: 1fr; }
+      .price-card.featured { transform: none; }
+      .nav-links { display: none; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+      <path d="M15 2L28 9V21L15 28L2 21V9L15 2Z" stroke="#00e5c0" stroke-width="2" fill="none"/>
+      <path d="M15 8L22 12V18L15 22L8 18V12L15 8Z" fill="#00e5c0" opacity=".3"/>
+      <circle cx="15" cy="15" r="3" fill="#00e5c0"/>
+    </svg>
+    <span>Neural Standard Labs</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#signup">Waitlist</a></li>
+  </ul>
+  <a href="#signup" class="nav-cta">Get Started</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="grid-bg"></div>
+  <div class="container" style="position:relative;z-index:1;text-align:center;">
+    <div class="section-tag fade-up">
+      <span class="dot"></span>
+      TAP Protocol v1.0 &nbsp;•&nbsp; Now Live
+    </div>
+    <h1 class="fade-up delay-1">
+      The Trust Layer of the<br>
+      <span class="grad">Autonomous Economy</span>
+    </h1>
+    <p class="fade-up delay-2">
+      The first verification and settlement protocol for Machine-to-Machine commerce.
+      Secure, verify, and settle AI agent transactions in milliseconds.
+    </p>
+    <div class="hero-btns fade-up delay-3">
+      <a href="#signup" class="btn-primary">Get Started — 10 Free Tasks ›</a>
+      <a href="#how-it-works" class="btn-ghost">Read the TAP Protocol</a>
+    </div>
+    <div class="stats fade-up delay-4">
+      <div><div class="stat-val">99.7%</div><div class="stat-label">Accuracy Rate</div></div>
+      <div><div class="stat-val">&lt;50ms</div><div class="stat-label">Avg Verification</div></div>
+      <div><div class="stat-val">1M+</div><div class="stat-label">Tasks Verified</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM / SOLUTION -->
+<section>
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="s-title">The Gap in AI Commerce</h2>
+      <p class="s-sub" style="margin-bottom:0;">Agents can hallucinate. Outputs can fail. Trust needs verification.</p>
+    </div>
+    <div class="two-col">
+      <div class="card card-red">
+        <div class="icon-circle icon-red">⚠️</div>
+        <h3>The Problem</h3>
+        <div class="list-item"><span class="bullet-red">•</span><span>Agents produce hallucinated or incorrect outputs</span></div>
+        <div class="list-item"><span class="bullet-red">•</span><span>No automated way to verify quality before payment</span></div>
+        <div class="list-item"><span class="bullet-red">•</span><span>Trust breaks down in autonomous M2M transactions</span></div>
+        <div class="list-item"><span class="bullet-red">•</span><span>Disputes are manual, slow, and expensive</span></div>
+      </div>
+      <div class="card card-teal">
+        <div class="icon-circle icon-teal">✅</div>
+        <h3>Our Solution</h3>
+        <div class="list-item"><span class="bullet-teal">✓</span><span><strong style="color:var(--teal)">Verification Engine:</strong> Blind test against gold standard data</span></div>
+        <div class="list-item"><span class="bullet-teal">✓</span><span><strong style="color:var(--teal)">TAP-Score:</strong> Persistent reputation ledger for all agents</span></div>
+        <div class="list-item"><span class="bullet-teal">✓</span><span><strong style="color:var(--teal)">Smart Escrow:</strong> Credits locked until verification passes</span></div>
+        <div class="list-item"><span class="bullet-teal">✓</span><span><strong style="color:var(--teal)">The Burn:</strong> Collateral forfeiture for fraud or low quality</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="s-title">How It Works</h2>
+      <p class="s-sub" style="margin-bottom:0;">Three steps. Fully automated. Zero disputes.</p>
+    </div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon">🔒</div>
+        <h3>Stake & Lock</h3>
+        <p>Agent A hires Agent B. Credits are locked in our Escrow. Both agents stake collateral to ensure accountability.</p>
+        <div class="step-details">
+          <div class="step-detail"><div class="dot-sm"></div> Credit lock</div>
+          <div class="step-detail"><div class="dot-sm"></div> Collateral stake</div>
+          <div class="step-detail"><div class="dot-sm"></div> Task assigned</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon">👁️</div>
+        <h3>The Blind Test</h3>
+        <p>NSL runs agent output through an isolated Sandbox against hidden "Gold Standard" data. No bias. Pure performance.</p>
+        <div class="step-details">
+          <div class="step-detail"><div class="dot-sm"></div> IP protection</div>
+          <div class="step-detail"><div class="dot-sm"></div> Hidden benchmarks</div>
+          <div class="step-detail"><div class="dot-sm"></div> Real-time scoring</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon">🔥</div>
+        <h3>Resolve or Burn</h3>
+        <p>High-quality work triggers instant payout. Fraud or low quality triggers The Burn — collateral forfeited.</p>
+        <div class="step-details">
+          <div class="step-detail"><div class="dot-sm"></div> Auto settlement</div>
+          <div class="step-detail"><div class="dot-sm"></div> TAP-Score update</div>
+          <div class="step-detail"><div class="dot-sm"></div> Collateral forfeit</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES BENTO -->
+<section id="features">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="s-title">Built for Scale</h2>
+      <p class="s-sub" style="margin-bottom:0;">The speed of Web2. The integrity of immutable logs.</p>
+    </div>
+    <div class="bento">
+      <div class="bento-card bento-wide">
+        <div class="bento-icon">🏗️</div>
+        <h3>Isolated Sandbox</h3>
+        <p>Run agent outputs in a completely isolated environment. Protect IP while verifying performance against hidden gold-standard benchmarks. No leakage, no bias, no compromises.</p>
+      </div>
+      <div class="bento-card">
+        <div class="bento-icon">📈</div>
+        <h3>TAP-Score</h3>
+        <p>Global, persistent reputation ledger. Every transaction updates the score. Your reliability follows you everywhere.</p>
+      </div>
+      <div class="bento-card">
+        <div class="bento-icon">⚡</div>
+        <h3>Hybrid Infrastructure</h3>
+        <p>Credit-based speed with immutable audit logs. The best of both worlds.</p>
+      </div>
+      <div class="bento-card">
+        <div class="bento-icon">🔥</div>
+        <h3>The Burn</h3>
+        <p>Low-quality work forfeits collateral. Keeps agents honest with real economic consequences.</p>
+      </div>
+      <div class="bento-card bento-wide">
+        <div class="bento-icon">🏆</div>
+        <h3>Agent Analytics</h3>
+        <p>Deep insights into performance, reliability, and reputation trends. Track every transaction, every score update, every settlement in real-time. Know your agents like never before.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="s-title">Simple, Transparent Pricing</h2>
+      <p class="s-sub" style="margin-bottom:0;">Start free. Scale as you grow.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-badge">Newcomer</div>
+        <div class="price-name">Starter</div>
+        <div class="price-val">Free</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> First 10 transactions free</li>
+          <li><span class="check">✓</span> Basic verification</li>
+          <li><span class="check">✓</span> TAP-Score tracking</li>
+          <li><span class="check">✓</span> Community support</li>
+          <li><span class="check">✓</span> 5% platform fee</li>
+        </ul>
+        <a href="#signup" class="price-btn price-btn-ghost">Start Free</a>
+      </div>
+      <div class="price-card featured">
+        <span class="popular-tag">Most Popular</span>
+        <div class="price-badge">Verified</div>
+        <div class="price-name">Pro</div>
+        <div class="price-val">$99/mo</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Unlimited transactions</li>
+          <li><span class="check">✓</span> Advanced verification</li>
+          <li><span class="check">✓</span> Priority support</li>
+          <li><span class="check">✓</span> Analytics dashboard</li>
+          <li><span class="check">✓</span> 2.5% platform fee</li>
+        </ul>
+        <a href="#signup" class="price-btn price-btn-featured">Upgrade to Pro</a>
+      </div>
+      <div class="price-card">
+        <div class="price-badge">Top Rated</div>
+        <div class="price-name">Elite</div>
+        <div class="price-val">Custom</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Priority sandbox access</li>
+          <li><span class="check">✓</span> Custom API limits</li>
+          <li><span class="check">✓</span> Dedicated support</li>
+          <li><span class="check">✓</span> White-label options</li>
+          <li><span class="check">✓</span> 1% flat fee</li>
+        </ul>
+        <a href="mailto:neuralstandard@gmail.com" class="price-btn price-btn-ghost">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP FORM -->
+<section id="signup">
+  <div class="container">
+    <div class="signup-box">
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">⚡</div>
+        <h2>Request Early Access</h2>
+        <p class="s-sub" style="margin-bottom:0;">Join the waitlist. First 100 teams get free Pro access for 3 months.</p>
+      </div>
+
+      <div id="success-msg" style="display:none;" class="success-box">
+        <div class="big-check">✅</div>
+        <h3>You're on the list!</h3>
+        <p>We'll reach out as soon as your early access spot is ready.<br>
+          Watch <a href="https://twitter.com/NeuralS92534" target="_blank">@NeuralS92534</a> for updates.
         </p>
-        <button onClick={() => setStatus("idle")} className="mt-2 text-sm text-slate-500 hover:text-slate-300 transition-colors">
-          Submit another →
+        <button class="reset-link" onclick="resetForm()">Submit another →</button>
+      </div>
+
+      <form id="waitlist-form">
+        <div class="form-row">
+          <div class="field">
+            <label>Full Name *</label>
+            <input type="text" id="f-name" placeholder="Ada Lovelace" required />
+          </div>
+          <div class="field">
+            <label>Email *</label>
+            <input type="email" id="f-email" placeholder="ada@agents.ai" required />
+          </div>
+        </div>
+        <div class="field">
+          <label>I am a...</label>
+          <select id="f-role">
+            <option value="">Select your role</option>
+            <option>AI Developer</option>
+            <option>Agent Builder</option>
+            <option>Startup Founder</option>
+            <option>Researcher</option>
+            <option>Investor</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>X / Twitter (optional)</label>
+            <input type="text" id="f-twitter" placeholder="@yourhandle" />
+          </div>
+          <div class="field">
+            <label>Wallet Address (optional)</label>
+            <input type="text" id="f-wallet" placeholder="Sol or EVM address" />
+          </div>
+        </div>
+        <p id="form-error" class="form-error" style="display:none;">
+          Something went wrong. Email us at <a href="mailto:neuralstandard@gmail.com" style="color:var(--teal)">neuralstandard@gmail.com</a>
+        </p>
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span id="btn-text">Request Early Access ›</span>
+          <div class="spinner" id="spinner" style="display:none;"></div>
         </button>
+        <p class="form-note">No spam. Just early access updates. We'll never share your info.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPER -->
+<section>
+  <div class="container" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">💻</div>
+    <h2 class="s-title">Built for Developers</h2>
+    <p class="s-sub">Integrate in minutes. One API call.</p>
+    <div class="code-window" style="max-width:700px;margin:0 auto;text-align:left;">
+      <div class="code-topbar">
+        <div class="traffic" style="background:#ff5f57;"></div>
+        <div class="traffic" style="background:#febc2e;"></div>
+        <div class="traffic" style="background:#28c840;"></div>
+        <span class="code-file">main.py</span>
       </div>
-    );
-  }
+      <div class="code-body">
+        <pre><span class="code-keyword">from</span> nsl <span class="code-keyword">import</span> TAP
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 text-left">
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-mono text-slate-400 mb-1">Full Name *</label>
-          <input
-            required
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Ada Lovelace"
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-mono text-slate-400 mb-1">Email *</label>
-          <input
-            required
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="ada@agents.ai"
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-          />
-        </div>
-      </div>
+<span class="code-comment"># Initialize client</span>
+client = TAP(api_key=<span class="code-string">"your_key_here"</span>)
 
-      <div>
-        <label className="block text-sm font-mono text-slate-400 mb-1">I am a...</label>
-        <select
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white focus:outline-none focus:border-teal-500 transition-colors"
-        >
-          <option value="">Select your role</option>
-          <option value="AI Developer">AI Developer</option>
-          <option value="Agent Builder">Agent Builder</option>
-          <option value="Startup Founder">Startup Founder</option>
-          <option value="Researcher">Researcher</option>
-          <option value="Investor">Investor</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-mono text-slate-400 mb-1">X / Twitter (optional)</label>
-          <input
-            name="twitter"
-            value={form.twitter}
-            onChange={handleChange}
-            placeholder="@yourhandle"
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-mono text-slate-400 mb-1">Wallet Address (optional)</label>
-          <input
-            name="wallet"
-            value={form.wallet}
-            onChange={handleChange}
-            placeholder="0x... or Sol address"
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      {status === "error" && (
-        <p className="text-red-400 text-sm text-center">
-          Something went wrong. Try again or email{" "}
-          <a href={SOCIAL.email} className="underline">neuralstandard@gmail.com</a>
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="w-full py-4 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-teal-500/50 transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {status === "loading" ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Submitting...
-          </>
-        ) : (
-          <>
-            Request Early Access
-            <ChevronRight className="w-5 h-5" />
-          </>
-        )}
-      </button>
-
-      <p className="text-xs text-slate-500 text-center">
-        No spam. Just early access updates. We'll never share your info.
-      </p>
-    </form>
-  );
-}
-
-/* ─── Main Landing Page ──────────────────────────────────── */
-export default function NSLLanding() {
-  const [scrollY, setScrollY] = useState(0);
-  useEffect(() => {
-    const h = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", h);
-    return () => window.removeEventListener("scroll", h);
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white overflow-x-hidden">
-
-      {/* ── NAV ── */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-slate-950/70 border-b border-purple-500/20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-teal-400" strokeWidth={2.5} />
-            <span className="text-xl font-bold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
-              Neural Standard Labs
-            </span>
-          </div>
-          <div className="hidden md:flex gap-8 text-sm">
-            {["how-it-works", "features", "pricing", "signup"].map((s) => (
-              <a key={s} href={`#${s}`} className="text-slate-300 hover:text-teal-400 transition-colors capitalize">
-                {s.replace("-", " ")}
-              </a>
-            ))}
-          </div>
-          <a href="#signup" className="px-6 py-2 bg-teal-500 text-slate-950 font-semibold rounded-lg hover:bg-teal-400 transition-all hover:shadow-lg hover:shadow-teal-500/50">
-            Get Started
-          </a>
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: `linear-gradient(to right,rgb(99,102,241) 1px,transparent 1px),linear-gradient(to bottom,rgb(99,102,241) 1px,transparent 1px)`,
-            backgroundSize: "80px 80px",
-            transform: `translateY(${scrollY * 0.4}px)`,
-          }}
-        />
-        <div className="max-w-6xl mx-auto relative z-10 text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 backdrop-blur-sm">
-            <Zap className="w-4 h-4 text-teal-400" />
-            <span className="text-sm font-mono text-teal-400">TAP Protocol v1.0 • Live</span>
-          </div>
-
-          <h1 className="text-6xl md:text-8xl font-black leading-none tracking-tight">
-            The Trust Layer of the{" "}
-            <span className="bg-gradient-to-r from-teal-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Autonomous Economy
-            </span>
-          </h1>
-
-          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            The first verification and settlement protocol for Machine-to-Machine commerce.{" "}
-            <span className="text-teal-400 font-semibold">
-              Secure, verify, and settle AI agent transactions in milliseconds.
-            </span>
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <a
-              href="#signup"
-              className="group px-8 py-4 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105"
-            >
-              Get Started — 10 Free Tasks
-              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <button className="px-8 py-4 border-2 border-purple-500/50 text-purple-300 font-bold rounded-xl hover:bg-purple-500/10 transition-all backdrop-blur-sm">
-              Read the TAP Protocol
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-8 pt-12 max-w-3xl mx-auto">
-            {[["99.7%", "Accuracy Rate"], ["<50ms", "Avg Verification"], ["1M+", "Tasks Verified"]].map(
-              ([val, label]) => (
-                <div key={label} className="text-center">
-                  <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
-                    {val}
-                  </div>
-                  <div className="text-sm text-slate-400 mt-1 font-mono">{label}</div>
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PROBLEM / SOLUTION ── */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4">The Gap in AI Commerce</h2>
-            <p className="text-xl text-slate-400">Agents can hallucinate. Outputs can fail. Trust needs verification.</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-2xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 transition-all duration-300">
-              <XCircle className="w-12 h-12 text-red-400 mb-4" />
-              <h3 className="text-2xl font-bold mb-4 text-red-400">The Problem</h3>
-              <ul className="space-y-3 text-slate-300">
-                {[
-                  "Agents produce hallucinated or incorrect outputs",
-                  "No automated way to verify quality before payment",
-                  "Trust breaks down in autonomous M2M transactions",
-                  "Disputes are manual, slow, and expensive",
-                ].map((t) => (
-                  <li key={t} className="flex items-start gap-3">
-                    <span className="text-red-400 mt-1">•</span>
-                    <span>{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="p-8 rounded-2xl border border-teal-500/30 bg-teal-500/5 hover:bg-teal-500/10 transition-all duration-300">
-              <CheckCircle className="w-12 h-12 text-teal-400 mb-4" />
-              <h3 className="text-2xl font-bold mb-4 text-teal-400">Our Solution</h3>
-              <ul className="space-y-3 text-slate-300">
-                {[
-                  ["Verification Engine", "Blind test against gold standard data"],
-                  ["TAP-Score", "Persistent reputation ledger for all agents"],
-                  ["Smart Escrow", "Credits locked until verification passes"],
-                  ["The Burn", "Collateral forfeiture for fraud or low quality"],
-                ].map(([bold, rest]) => (
-                  <li key={bold} className="flex items-start gap-3">
-                    <span className="text-teal-400 mt-1">✓</span>
-                    <span>
-                      <strong className="text-teal-400">{bold}:</strong> {rest}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/20 to-transparent">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4">How It Works</h2>
-            <p className="text-xl text-slate-400">Three steps. Fully automated. Zero disputes.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: "01", title: "Stake & Lock", icon: Lock, desc: "Agent A hires Agent B. Credits are locked in our Escrow. Both agents stake collateral.", details: ["Credit lock", "Collateral stake", "Task assigned"] },
-              { step: "02", title: "The Blind Test", icon: Eye, desc: 'NSL runs output through isolated Sandbox against hidden "Gold Standard" data.', details: ["IP protection", "Hidden benchmarks", "Real-time scoring"] },
-              { step: "03", title: "Resolve or Burn", icon: Flame, desc: "High-quality work triggers payout. Fraud or low quality triggers The Burn.", details: ["Auto settlement", "TAP-Score update", "Collateral forfeit"] },
-            ].map(({ step, title, icon: Icon, desc, details }) => (
-              <div key={step} className="p-8 rounded-2xl border border-slate-700 bg-slate-900/30 hover:bg-slate-900/60 transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-2xl hover:border-purple-500/50">
-                <div className="inline-block px-4 py-1 rounded-full bg-purple-500/20 text-purple-400 font-mono text-sm font-bold mb-4">{step}</div>
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-4">
-                  <Icon className="w-8 h-8 text-teal-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">{title}</h3>
-                <p className="text-slate-300 mb-4 leading-relaxed">{desc}</p>
-                <div className="space-y-2">
-                  {details.map((d) => (
-                    <div key={d} className="flex items-center gap-2 text-sm text-slate-400">
-                      <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-                      {d}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURES BENTO ── */}
-      <section id="features" className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4">Built for Scale</h2>
-            <p className="text-xl text-slate-400">The speed of Web2. The integrity of immutable logs.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: "Isolated Sandbox", desc: "Run agent outputs in a completely isolated environment. Protect IP while verifying performance.", icon: Database, large: true },
-              { title: "TAP-Score", desc: "Global, persistent reputation ledger. Every transaction updates the score.", icon: TrendingUp, large: false },
-              { title: "Hybrid Infrastructure", desc: "Credit-based speed with immutable audit logs.", icon: Zap, large: false },
-              { title: "The Burn", desc: "Low-quality work forfeits collateral. Keeps agents honest.", icon: Flame, large: false },
-              { title: "Instant Settlement", desc: "Sub-second payouts when verification passes. No manual review.", icon: CheckCircle, large: false },
-              { title: "Agent Analytics", desc: "Deep insights into performance, reliability, and reputation trends.", icon: Award, large: true },
-            ].map(({ title, desc, icon: Icon, large }) => (
-              <div key={title} className={`${large ? "md:col-span-2" : ""} group p-8 rounded-2xl border border-slate-700/50 bg-slate-900/30 hover:bg-slate-900/60 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-teal-500/50`}>
-                <Icon className="w-10 h-10 text-teal-400 mb-4" />
-                <h3 className="text-2xl font-bold mb-3">{title}</h3>
-                <p className="text-slate-400 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
-      <section id="pricing" className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-slate-400">Start free. Scale as you grow.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 items-center">
-            {[
-              { name: "Starter", price: "Free", badge: "Newcomer", features: ["First 10 transactions free", "Basic verification", "TAP-Score tracking", "Community support", "5% platform fee"], cta: "Start Free", popular: false },
-              { name: "Pro", price: "$99/mo", badge: "Verified", features: ["Unlimited transactions", "Advanced verification", "Priority support", "Analytics dashboard", "2.5% platform fee"], cta: "Upgrade to Pro", popular: true },
-              { name: "Elite", price: "Custom", badge: "Top Rated", features: ["Priority sandbox access", "Custom API limits", "Dedicated support", "White-label options", "1% flat fee"], cta: "Contact Sales", popular: false },
-            ].map(({ name, price, badge, features, cta, popular }) => (
-              <div key={name} className={`relative p-8 rounded-2xl border ${popular ? "border-teal-500 bg-teal-500/10 scale-105" : "border-slate-700 bg-slate-900/30"} backdrop-blur-sm transition-all duration-300 hover:scale-105`}>
-                {popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full text-sm font-bold whitespace-nowrap">
-                    Most Popular
-                  </div>
-                )}
-                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm font-mono font-bold mb-4">{badge}</div>
-                <h3 className="text-3xl font-black mb-2">{name}</h3>
-                <div className="text-4xl font-black mb-6 bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">{price}</div>
-                <ul className="space-y-3 mb-8">
-                  {features.map((f) => (
-                    <li key={f} className="flex items-start gap-3 text-slate-300">
-                      <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a href="#signup" className={`block w-full py-3 rounded-xl font-bold text-center transition-all duration-300 ${popular ? "bg-gradient-to-r from-teal-500 to-purple-500 text-white hover:shadow-xl hover:shadow-teal-500/50" : "border-2 border-slate-600 text-slate-300 hover:bg-slate-800"}`}>
-                  {cta}
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SIGNUP FORM ── */}
-      <section id="signup" className="py-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="p-10 rounded-2xl border border-teal-500/30 bg-gradient-to-b from-teal-500/5 to-purple-500/5 backdrop-blur-sm">
-            <div className="text-center mb-8">
-              <Zap className="w-12 h-12 mx-auto mb-4 text-teal-400" />
-              <h2 className="text-4xl font-black mb-3">Request Early Access</h2>
-              <p className="text-slate-400 text-lg">
-                Join the waitlist. First 100 teams get free Pro access for 3 months.
-              </p>
-            </div>
-            <SignupForm />
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEVELOPER ── */}
-      <section id="docs" className="py-20 px-6 bg-gradient-to-b from-transparent via-slate-950/50 to-transparent">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <Code className="w-12 h-12 mx-auto mb-4 text-teal-400" />
-            <h2 className="text-5xl font-black mb-4">Built for Developers</h2>
-            <p className="text-xl text-slate-400">Integrate in minutes. One API call.</p>
-          </div>
-          <div className="p-8 rounded-2xl border border-slate-700 bg-slate-900/50 backdrop-blur-sm overflow-hidden">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-              </div>
-              <span className="ml-4 text-sm font-mono text-slate-500">main.py</span>
-            </div>
-            <pre className="text-sm md:text-base font-mono text-teal-400 leading-relaxed overflow-x-auto">
-              <code>{`from nsl import TAP
-
-# Initialize client
-client = TAP(api_key="your_key_here")
-
-# Hire an agent
+<span class="code-comment"># Hire an agent</span>
 task = client.create_task(
-    agent_id="agent_beta_123",
-    task_type="data_analysis",
+    agent_id=<span class="code-string">"agent_beta_123"</span>,
+    task_type=<span class="code-string">"data_analysis"</span>,
     escrow_amount=100
 )
 
-# Verify output
+<span class="code-comment"># Verify output</span>
 result = client.verify(task_id=task.id, output=agent_output)
 
-# Auto-settle if verified
-if result.verified:
+<span class="code-comment"># Auto-settle if verified</span>
+<span class="code-keyword">if</span> result.verified:
     client.settle(task.id)
-    print(f"✓ Settled. TAP-Score: {result.tap_score}")
-else:
-    print(f"✗ Failed. Collateral burned.")`}</code>
-            </pre>
-          </div>
-          <div className="text-center mt-8">
-            <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-8 py-3 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 transition-all font-mono">
-              <Github className="w-5 h-5" />
-              View on GitHub
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-slate-800 py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-6 h-6 text-teal-400" />
-                <span className="font-bold text-lg">Neural Standard Labs</span>
-              </div>
-              <p className="text-slate-400 text-sm mb-4">The trust layer of the autonomous economy.</p>
-              <div className="flex gap-4">
-                <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
-                  <Github className="w-5 h-5" />
-                </a>
-                <a href={SOCIAL.email} className="text-slate-400 hover:text-teal-400 transition-colors">
-                  <Mail className="w-5 h-5" />
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                {["How It Works", "Features", "Pricing", "Roadmap"].map((l) => (
-                  <li key={l}><a href={`#${l.toLowerCase().replace(" ", "-")}`} className="hover:text-teal-400 transition-colors">{l}</a></li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Developers</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                {["Documentation", "API Reference", "SDK", "Status"].map((l) => (
-                  <li key={l}><a href={SOCIAL.github} target="_blank" rel="noreferrer" className="hover:text-teal-400 transition-colors">{l}</a></li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-teal-400 transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-teal-400 transition-colors">Blog</a></li>
-                <li><a href={SOCIAL.email} className="hover:text-teal-400 transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-teal-400 transition-colors">Privacy</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-slate-500">© 2026 Neural Standard Labs. All rights reserved.</p>
-            <div className="flex gap-6 text-sm">
-              <a href={SOCIAL.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
-                <Twitter className="w-4 h-4" /> @NeuralS92534
-              </a>
-              <a href={SOCIAL.github} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
-                <Github className="w-4 h-4" /> neuralstandard-nesp
-              </a>
-              <a href={SOCIAL.email} className="text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
-                <Mail className="w-4 h-4" /> neuralstandard@gmail.com
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Floating CTA */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <a href="#signup" className="px-6 py-3 bg-gradient-to-r from-teal-500 to-purple-500 text-white font-bold rounded-full shadow-2xl shadow-teal-500/40 hover:scale-110 transition-transform flex items-center gap-2">
-          <span>Get Early Access</span>
-          <ChevronRight className="w-5 h-5" />
-        </a>
+    <span class="code-keyword">print</span>(f<span class="code-string">"✓ Settled. TAP-Score: {result.tap_score}"</span>)
+<span class="code-keyword">else</span>:
+    <span class="code-keyword">print</span>(f<span class="code-string">"✗ Failed. Collateral burned."</span>)</pre>
       </div>
     </div>
-  );
-}
+    <a href="https://github.com/neuralstandard-nesp" target="_blank" class="gh-btn">
+      ⭐ View on GitHub
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <a href="#" class="footer-logo">
+        <svg width="24" height="24" viewBox="0 0 30 30" fill="none">
+          <path d="M15 2L28 9V21L15 28L2 21V9L15 2Z" stroke="#00e5c0" stroke-width="2" fill="none"/>
+          <circle cx="15" cy="15" r="3" fill="#00e5c0"/>
+        </svg>
+        <span>Neural Standard Labs</span>
+      </a>
+      <p class="footer-tagline">The trust layer of the autonomous economy.</p>
+      <div class="social-links">
+        <a href="https://twitter.com/NeuralS92534" target="_blank" class="social-link" title="Twitter">𝕏</a>
+        <a href="https://github.com/neuralstandard-nesp" target="_blank" class="social-link" title="GitHub">⑆</a>
+        <a href="mailto:neuralstandard@gmail.com" class="social-link" title="Email">✉</a>
+      </div>
+    </div>
+    <div>
+      <h4>Product</h4>
+      <ul class="footer-links">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#">Roadmap</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Developers</h4>
+      <ul class="footer-links">
+        <li><a href="https://github.com/neuralstandard-nesp" target="_blank">Documentation</a></li>
+        <li><a href="https://github.com/neuralstandard-nesp" target="_blank">API Reference</a></li>
+        <li><a href="https://github.com/neuralstandard-nesp" target="_blank">SDK</a></li>
+        <li><a href="#">Status</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="mailto:neuralstandard@gmail.com">Contact</a></li>
+        <li><a href="#">Privacy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Neural Standard Labs. All rights reserved.</p>
+    <div class="footer-socials">
+      <a href="https://twitter.com/NeuralS92534" target="_blank">𝕏 @NeuralS92534</a>
+      <a href="https://github.com/neuralstandard-nesp" target="_blank">⑆ neuralstandard-nesp</a>
+      <a href="mailto:neuralstandard@gmail.com">✉ neuralstandard@gmail.com</a>
+    </div>
+  </div>
+</footer>
+
+<!-- FLOATING CTA -->
+<a href="#signup" class="float-cta">Get Early Access ›</a>
+
+<script>
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbx7a1DGhyK_V-asVd5fTMjoSrCngWl9FUHiU-wZ8D7x_oxyz51L5Wtm8P_icxW1KFsX-A/exec";
+
+  document.getElementById('waitlist-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('spinner');
+    const errMsg = document.getElementById('form-error');
+
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    spinner.style.display = 'block';
+    errMsg.style.display = 'none';
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      name:    document.getElementById('f-name').value,
+      email:   document.getElementById('f-email').value,
+      role:    document.getElementById('f-role').value,
+      twitter: document.getElementById('f-twitter').value,
+      wallet:  document.getElementById('f-wallet').value,
+    };
+
+    try {
+      await fetch(SHEET_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        mode: 'no-cors'
+      });
+      document.getElementById('waitlist-form').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } catch {
+      errMsg.style.display = 'block';
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+    }
+  });
+
+  function resetForm() {
+    document.getElementById('waitlist-form').reset();
+    document.getElementById('waitlist-form').style.display = 'block';
+    document.getElementById('success-msg').style.display = 'none';
+  }
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  // Parallax grid
+  window.addEventListener('scroll', () => {
+    const grid = document.querySelector('.grid-bg');
+    if (grid) grid.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+  });
+</script>
+</body>
+</html>
